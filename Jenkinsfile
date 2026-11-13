@@ -9,9 +9,7 @@ pipeline {
                     reuseNode true
                 }
             }
-            steps {
-                echo 'Hello World'
-                sh '''
+            steps '''
                    ls -la
                    node --version
                    npm --version
@@ -23,6 +21,8 @@ pipeline {
         }
 
         stage('Test') {
+            parallel{
+                stage('Unit tests'){
                 agent {
                    docker {
                        image 'node:18-alpine'
@@ -36,5 +36,22 @@ pipeline {
                       '''
                   }
                 }
+            }    
     }
+        stage('Deploy') {
+            agent{
+                docker{
+                    image 'node:18-alpine'
+                    reuseNode true
+                }
+            }
+            steps '''
+                  npm install netlify-cli -g 
+                  netlify --version
+                '''
+            }
+        }
+        
+}
+
 }
