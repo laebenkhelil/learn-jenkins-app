@@ -1,57 +1,59 @@
+
 pipeline {
     agent any
 
     stages {
         stage('build') {
-            agent{
-                docker{
+            agent {
+                docker {
                     image 'node:18-alpine'
                     reuseNode true
                 }
             }
-            steps '''
-                   ls -la
-                   node --version
-                   npm --version
-                   npm ci
-                   npm run build
-                   ls -la
+            steps {
+                sh '''
+                    ls -la
+                    node --version
+                    npm --version
+                    npm ci
+                    npm run build
+                    ls -la
                 '''
             }
         }
 
         stage('Test') {
-            parallel{
-                stage('Unit tests'){
-                agent {
-                   docker {
-                       image 'node:18-alpine'
-                       reuseNode true
-                   }
+            parallel {
+                stage('Unit tests') {
+                    agent {
+                        docker {
+                            image 'node:18-alpine'
+                            reuseNode true
+                        }
+                    }
+                    steps {
+                        sh '''
+                            test -f build/index.html
+                            npm test
+                        '''
+                    }
                 }
-                  steps {
-                     sh '''
-                         test -f build/index.html
-                          npm test
-                      '''
-                  }
-                }
-            }    
-    }
+            }
+        }
+
         stage('Deploy') {
-            agent{
-                docker{
+            agent {
+                docker {
                     image 'node:18-alpine'
                     reuseNode true
                 }
             }
-            steps '''
-                  npm install netlify-cli -g 
-                  netlify --version
+            steps {
+                sh '''
+                    npm install netlify-cli
+                    netlify --version
                 '''
             }
         }
-        
-}
-
+    }
 }
